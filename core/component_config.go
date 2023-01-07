@@ -25,6 +25,7 @@ type ComponentConfig struct {
 	Path           string              `yaml:"path"`
 	Replace        bool                `yaml:"replace"`
 	Variables      yaml.MapSlice       `yaml:"variables"`
+	PathVariables  []string            `yaml:"path_variables"`
 	Repository     string              `yaml:"repository"`
 	Tags           []string            `yaml:"tags"`
 	AfterCloneHook string              `yaml:"after_clone_hook"`

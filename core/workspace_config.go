@@ -2,6 +2,7 @@ package core
 
 import (
 	"gopkg.in/yaml.v2"
+	"path/filepath"
 )
 
 type WorkspaceConfig struct {
@@ -9,6 +10,7 @@ type WorkspaceConfig struct {
 	ElcMinVersion string                     `yaml:"elc_min_version"`
 	Components    map[string]ComponentConfig `yaml:"components"`
 	Variables     yaml.MapSlice              `yaml:"variables"`
+	PathVariables []string                   `yaml:"path_variables"`
 
 	// deprecated
 	Aliases map[string]string `yaml:"aliases"`
@@ -48,6 +50,14 @@ func (wsc *WorkspaceConfig) normalize() {
 	wsc.Modules = nil
 }
 
+func (wsc *WorkspaceConfig) normailizeComponentPaths() {
+	for _, v := range wsc.Components {
+		v.ComposeFile = filepath.FromSlash(v.ComposeFile)
+		v.ExecPath = filepath.FromSlash(v.ExecPath)
+		v.Path = filepath.FromSlash(v.Path)
+	}
+}
+
 func (wsc WorkspaceConfig) merge(wsc2 WorkspaceConfig) WorkspaceConfig {
 	for name, cc := range wsc2.Components {
 		if _, exists := wsc.Components[name]; !exists {
@@ -84,6 +94,7 @@ func (wsc *WorkspaceConfig) loadFromFile(wscPath string) error {
 	}
 
 	wsc.normalize()
+	wsc.normailizeComponentPaths()
 
 	return nil
 }

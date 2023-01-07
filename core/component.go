@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -34,6 +35,7 @@ func (comp *Component) init() error {
 	if err != nil {
 		return err
 	}
+	svcPath = filepath.FromSlash(svcPath)
 	ctx = ctx.add("SVC_PATH", svcPath)
 
 	if comp.Config.Extends != "" {
@@ -47,20 +49,29 @@ func (comp *Component) init() error {
 		if err != nil {
 			return err
 		}
+		tplPath = filepath.FromSlash(tplPath)
 		ctx = ctx.add("TPL_PATH", tplPath)
 		if tpl.ComposeFile == "" {
-			tpl.ComposeFile = "${TPL_PATH}/docker-compose.yml"
+			tpl.ComposeFile = filepath.FromSlash("${TPL_PATH}/docker-compose.yml") // TODO check if working or not (here and other in this file)
 		}
 		composeFile, err := ctx.RenderString(tpl.ComposeFile)
 		if err != nil {
 			return err
 		}
+		composeFile = filepath.FromSlash(composeFile)
 		ctx = ctx.add("COMPOSE_FILE", composeFile)
 		for _, pair := range tpl.Variables {
 			value, err := ctx.RenderString(pair.Value.(string))
 			if err != nil {
 				return err
 			}
+
+			// normalize path variables
+			if contains(tpl.PathVariables, pair.Key.(string)) {
+				value = filepath.FromSlash(value)
+				value = filepath.Clean(value)
+			}
+
 			ctx = ctx.add(pair.Key.(string), value)
 		}
 	}
@@ -74,7 +85,7 @@ func (comp *Component) init() error {
 	}
 	composeFile, found := ctx.find("COMPOSE_FILE")
 	if !found || composeFile == "" {
-		composeFile, err := ctx.RenderString("${SVC_PATH}/docker-compose.yml")
+		composeFile, err := ctx.RenderString(filepath.FromSlash("${SVC_PATH}/docker-compose.yml"))
 		if err != nil {
 			return err
 		}
@@ -86,6 +97,13 @@ func (comp *Component) init() error {
 		if err != nil {
 			return err
 		}
+
+		// normalize path variables
+		if contains(comp.Config.PathVariables, pair.Key.(string)) {
+			value = filepath.FromSlash(value)
+			value = filepath.Clean(value)
+		}
+
 		ctx = ctx.add(pair.Key.(string), value)
 	}
 

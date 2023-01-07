@@ -3,7 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/hashicorp/go-version"
@@ -31,12 +31,12 @@ func NewWorkspace(wsPath string, cwd string) *Workspace {
 
 func (ws *Workspace) LoadConfig() error {
 	wsc := *NewWorkspaceConfig()
-	err := wsc.loadFromFile(path.Join(ws.ConfigPath, "workspace.yaml"))
+	err := wsc.loadFromFile(filepath.Join(ws.ConfigPath, "workspace.yaml"))
 	if err != nil {
 		return err
 	}
 
-	envPath := path.Join(ws.ConfigPath, "env.yaml")
+	envPath := filepath.Join(ws.ConfigPath, "env.yaml")
 	if Pc.FileExists(envPath) {
 		envWsc := *NewWorkspaceConfig()
 		err := envWsc.loadFromFile(envPath)
@@ -102,7 +102,7 @@ func (ws *Workspace) checkVersion() error {
 func (ws *Workspace) createContext() (*Context, error) {
 	ctx := make(Context, 0)
 
-	ctx = ctx.add("WORKSPACE_PATH", strings.TrimRight(ws.ConfigPath, "/"))
+	ctx = ctx.add("WORKSPACE_PATH", filepath.FromSlash(strings.TrimRight(ws.ConfigPath, "/\\")))
 	ctx = ctx.add("WORKSPACE_NAME", ws.Config.Name)
 
 	for _, pair := range ws.Config.Variables {
@@ -110,6 +110,13 @@ func (ws *Workspace) createContext() (*Context, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// normalize path variables
+		if contains(ws.Config.PathVariables, pair.Key.(string)) {
+			value = filepath.FromSlash(value)
+			value = filepath.Clean(value)
+		}
+
 		ctx = ctx.add(pair.Key.(string), value)
 	}
 
