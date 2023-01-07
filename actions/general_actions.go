@@ -5,6 +5,7 @@ import (
 	"github.com/madridianfox/elc/core"
 )
 
+// TODO fix it to with one other todocomment
 func UpdateBinaryAction(version string) error {
 	env := make([]string, 0)
 	if version != "" {

@@ -42,6 +42,5 @@ func (ctx *Context) renderMapToEnv() []string {
 	for _, pair := range *ctx {
 		result = append(result, fmt.Sprintf("%s=%s", pair[0], pair[1]))
 	}
-
 	return result
 }

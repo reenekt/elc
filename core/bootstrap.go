@@ -1,7 +1,7 @@
 package core
 
 import (
-	"path"
+	"path/filepath"
 )
 
 func CheckAndLoadHC() (*HomeConfig, error) {
@@ -9,7 +9,7 @@ func CheckAndLoadHC() (*HomeConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	homeConfigPath := path.Join(homeDir, ".elc.yaml")
+	homeConfigPath := filepath.Join(homeDir, ".elc.yaml")
 	err = CheckHomeConfigIsEmpty(homeConfigPath)
 	if err != nil {
 		return nil, err

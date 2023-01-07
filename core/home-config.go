@@ -20,6 +20,7 @@ type HomeConfig struct {
 	Workspaces       []HomeConfigItem `yaml:"workspaces"`
 }
 
+// DefaultUpdateCommand TODO может сделать подпрограмму elc-updater ? (второстепенное)
 const DefaultUpdateCommand = "curl -sSL https://raw.githubusercontent.com/ensi-platform/elc/master/get.sh | sudo -E bash"
 
 func LoadHomeConfig(configPath string) (*HomeConfig, error) {
